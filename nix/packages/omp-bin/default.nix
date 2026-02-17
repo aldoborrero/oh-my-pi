@@ -7,25 +7,25 @@
 let
   inherit (pkgs) lib;
 
-  version = "12.8.2";
+  version = "12.9.0";
 
   # Platform-specific binary info
   platformInfo = {
     "x86_64-linux" = {
       name = "omp-linux-x64";
-      hash = "1cfzbvlrlf06w5d3rw7qr9iyamxd8al5zmxqzply30x819dl78ya";
+      hash = "0lyklgl43q4cvnmn1k7qy3l6y363p4zklpgx0zwfizr5b1r4wnl7";
     };
     "aarch64-linux" = {
       name = "omp-linux-arm64";
-      hash = "1j8zwbgm0s1ihai6p2nbai331jmi08jzfsby53lawhpkjcjf47a5";
+      hash = "1g6sjxy6nsrwfv7njsy6kiihmcrs0knnd8vdfcn82y1hnn34n3sp";
     };
     "x86_64-darwin" = {
       name = "omp-darwin-x64";
-      hash = "0sd1jq2pd1bicwc05c8v872ay3hnlcgv9dijnlh6d6lkdpwx9mp6";
+      hash = "1brvsjxkc4dwy1l1h9i35vnhywwidhjx9fc1idlmvwlgl6vi1rq0";
     };
     "aarch64-darwin" = {
       name = "omp-darwin-arm64";
-      hash = "1vpd03sxv6p0c26647qmjdxn12ikx81hx7j48vf061pl471sc9h1";
+      hash = "136z7969cl8wlfj2migzbl950j16lk963js8n3nsv1cgwqsbsnmw";
     };
   };
 

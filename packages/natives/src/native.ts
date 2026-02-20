@@ -24,6 +24,7 @@ import "./pty/types";
 import "./shell/types";
 import "./text/types";
 import "./work/types";
+import "./workmux/types";
 
 export type { NativeBindings, TsFunc } from "./bindings";
 
@@ -295,6 +296,18 @@ function validateNative(bindings: NativeBindings, source: string): void {
 	checkFn("listDescendants");
 	checkFn("getWorkProfile");
 	checkFn("invalidateFsScanCache");
+	checkFn("workmuxCreateWindow");
+	checkFn("workmuxDetectEnvironment");
+	checkFn("workmuxIsAvailable");
+	checkFn("workmuxCurrentPaneId");
+	checkFn("workmuxSetAgentStatus");
+	checkFn("workmuxClearAgentStatus");
+	checkFn("workmuxListAgents");
+	checkFn("workmuxSendKeys");
+	checkFn("workmuxCapturePane");
+	checkFn("workmuxWindowExists");
+	checkFn("workmuxSelectWindow");
+	checkFn("workmuxKillWindow");
 	if (missing.length) {
 		throw new Error(
 			`Native addon missing exports (${source}). Missing: ${missing.join(", ")}. ` +

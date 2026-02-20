@@ -33,30 +33,31 @@ ignore = "0.4"
 rayon = "1.10"
 inferno = { version = "0.12", default-features = false }
 image = { version = "0.25", default-features = false, features = [
-   "png",
-   "jpeg",
-   "gif",
-   "webp",
+  "png",
+  "jpeg",
+  "gif",
+  "webp",
 ] }
 arboard = { version = "3.5.0", features = ["wayland-data-control"] }
 bstr = "1"
 unicode-segmentation = "1.11"
 unicode-width = "0.2"
 syntect = { version = "5.3", default-features = false, features = [
-   "default-syntaxes",
-   "default-themes",
-   "regex-fancy",
+  "default-syntaxes",
+  "default-themes",
+  "regex-fancy",
 ] }
 html-to-markdown-rs = { version = "2.24", default-features = false }
 phf = { version = "0.13", features = ["macros"] }
 smallvec = { version = "1.15.1", features = [
-   "serde",
-   "write",
-   "union",
-   "specialization",
-   "const_new",
+  "serde",
+  "write",
+  "union",
+  "specialization",
+  "const_new",
 ] }
 heapless = { version = "0.9.2", features = ["serde", "nightly"] }
+workmux = { git = "https://github.com/aldoborrero/workmux", branch = "feat/library-extraction", default-features = false }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

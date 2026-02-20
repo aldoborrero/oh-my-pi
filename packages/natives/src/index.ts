@@ -123,3 +123,27 @@ export { killTree, listDescendants } from "./ps";
 // =============================================================================
 
 export { getWorkProfile, type WorkProfile } from "./work";
+
+// =============================================================================
+// Workmux (terminal multiplexer + git worktree orchestration)
+// =============================================================================
+
+export {
+	capturePane as workmuxCapturePane,
+	clearAgentStatus as workmuxClearAgentStatus,
+	createWindow as workmuxCreateWindow,
+	currentPaneId as workmuxCurrentPaneId,
+	detectEnvironment as workmuxDetectEnvironment,
+	isAvailable as workmuxIsAvailable,
+	killWindow as workmuxKillWindow,
+	listAgents as workmuxListAgents,
+	selectWindow as workmuxSelectWindow,
+	sendKeys as workmuxSendKeys,
+	setAgentStatus as workmuxSetAgentStatus,
+	windowExists as workmuxWindowExists,
+	type WorkmuxAgentInfo,
+	type WorkmuxAgentStatus,
+	type WorkmuxBackend,
+	type WorkmuxCreateWindowParams,
+	type WorkmuxEnvironment,
+} from "./workmux";

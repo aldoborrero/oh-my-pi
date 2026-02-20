@@ -31,6 +31,7 @@ export interface SwarmState {
 	iteration: number;
 	targetCount: number;
 	agents: Record<string, AgentState>;
+	paneIds: Record<string, string>;
 	startedAt: number;
 	completedAt?: number;
 }
@@ -52,6 +53,7 @@ export class StateTracker {
 			iteration: 0,
 			targetCount: 1,
 			agents: {},
+			paneIds: {},
 			startedAt: Date.now(),
 		};
 	}
@@ -90,6 +92,11 @@ export class StateTracker {
 		const agent = this.#state.agents[name];
 		if (!agent) return;
 		Object.assign(agent, update);
+		await this.#persist();
+	}
+
+	async updatePaneIds(paneIds: Record<string, string>): Promise<void> {
+		this.#state.paneIds = { ...this.#state.paneIds, ...paneIds };
 		await this.#persist();
 	}
 

@@ -51,3 +51,6 @@ target/
 .worktrees/
 
 *.node
+
+.result*
+

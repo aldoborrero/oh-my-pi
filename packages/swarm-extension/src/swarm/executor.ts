@@ -15,6 +15,7 @@ import type {
 	SingleResult,
 } from "@oh-my-pi/pi-coding-agent";
 import { runSubprocess } from "@oh-my-pi/pi-coding-agent";
+import type { SwarmMux } from "./mux";
 import type { SwarmAgent } from "./schema";
 import type { StateTracker } from "./state";
 
@@ -29,6 +30,7 @@ export interface SwarmExecutorOptions {
 	modelRegistry?: ModelRegistry;
 	settings?: Settings;
 	stateTracker: StateTracker;
+	mux?: SwarmMux;
 }
 
 /**
@@ -56,6 +58,7 @@ export async function executeSwarmAgent(
 		modelRegistry,
 		settings,
 		stateTracker,
+		mux,
 	} = options;
 
 	const agentId = `swarm-${swarmName}-${agent.name}-${iteration}`;
@@ -74,6 +77,13 @@ export async function executeSwarmAgent(
 	});
 	await stateTracker.appendLog(agent.name, `Starting iteration ${iteration}`);
 
+	// Set mux status to "Working" and start log forwarding
+	if (mux?.isAvailable) {
+		await mux.setAgentStatus(agent.name, "Working", `${agent.name}: ${agent.role}`);
+		await mux.startLogForwarding(agent.name);
+		await mux.appendLiveLog(agent.name, `Starting iteration ${iteration}`);
+	}
+
 	try {
 		const result = await runSubprocess({
 			cwd: workspace,
@@ -83,7 +93,20 @@ export async function executeSwarmAgent(
 			id: agentId,
 			modelOverride,
 			signal,
-			onProgress: progress => onProgress?.(agent.name, progress),
+			onProgress: progress => {
+				onProgress?.(agent.name, progress);
+				// Forward progress to the live log for pane visibility
+				if (mux?.isAvailable) {
+					if (progress.currentTool) {
+						mux.appendLiveLog(agent.name, `[tool] ${progress.currentTool}`);
+					} else if (progress.recentOutput.length > 0) {
+						const latest = progress.recentOutput[progress.recentOutput.length - 1];
+						if (latest) {
+							mux.appendLiveLog(agent.name, latest.slice(0, 200));
+						}
+					}
+				}
+			},
 			authStorage,
 			modelRegistry,
 			settings,
@@ -102,6 +125,13 @@ export async function executeSwarmAgent(
 			`Iteration ${iteration} ${status}${result.error ? `: ${result.error}` : ""}`,
 		);
 
+		// Update mux status on completion
+		if (mux?.isAvailable) {
+			const muxStatus = status === "completed" ? "Done" : "Working";
+			await mux.setAgentStatus(agent.name, muxStatus, `${agent.name}: ${status}`);
+			await mux.appendLiveLog(agent.name, `Iteration ${iteration} ${status}`);
+		}
+
 		return result;
 	} catch (err) {
 		const error = err instanceof Error ? err.message : String(err);
@@ -111,6 +141,12 @@ export async function executeSwarmAgent(
 			error,
 		});
 		await stateTracker.appendLog(agent.name, `Iteration ${iteration} error: ${error}`);
+
+		// Update mux status on failure
+		if (mux?.isAvailable) {
+			await mux.appendLiveLog(agent.name, `Error: ${error}`);
+		}
+
 		throw err;
 	}
 }

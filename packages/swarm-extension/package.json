@@ -13,7 +13,9 @@
 			"./src/extension.ts"
 		]
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@oh-my-pi/pi-natives": "workspace:*"
+	},
 	"peerDependencies": {
 		"@oh-my-pi/pi-coding-agent": "^11"
 	},

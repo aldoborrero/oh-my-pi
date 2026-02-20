@@ -8,6 +8,7 @@
  */
 import type { AgentSource, AuthStorage, ModelRegistry, Settings, SingleResult } from "@oh-my-pi/pi-coding-agent";
 import { executeSwarmAgent } from "./executor";
+import { SwarmMux } from "./mux";
 import type { SwarmDefinition } from "./schema";
 import type { StateTracker } from "./state";
 
@@ -47,11 +48,13 @@ export class PipelineController {
 	#def: SwarmDefinition;
 	#waves: string[][];
 	#stateTracker: StateTracker;
+	#mux: SwarmMux;
 
 	constructor(def: SwarmDefinition, waves: string[][], stateTracker: StateTracker) {
 		this.#def = def;
 		this.#waves = waves;
 		this.#stateTracker = stateTracker;
+		this.#mux = new SwarmMux(def.workspace, stateTracker.swarmDir);
 	}
 
 	async run(options: PipelineOptions): Promise<PipelineResult> {
@@ -65,14 +68,36 @@ export class PipelineController {
 
 		const targetCount = this.#def.targetCount;
 
+		// Initialize mux and create panes for each agent
+		await this.#mux.init();
+		if (this.#mux.isAvailable) {
+			// Restore pane IDs from previous session if available
+			const existingPaneIds = this.#stateTracker.state.paneIds;
+			if (existingPaneIds && Object.keys(existingPaneIds).length > 0) {
+				this.#mux.restorePaneIds(existingPaneIds);
+			}
+
+			// Create windows for agents that don't have panes yet
+			for (const name of this.#def.agents.keys()) {
+				if (!existingPaneIds?.[name]) {
+					await this.#mux.createAgentPane(name, workspace);
+				}
+			}
+
+			// Persist the pane ID mappings
+			await this.#stateTracker.updatePaneIds(this.#mux.paneIds);
+		}
+
 		await this.#stateTracker.appendOrchestratorLog(
-			`Pipeline '${this.#def.name}' starting: mode=${this.#def.mode} iterations=${targetCount} waves=${this.#waves.length} agents=${this.#def.agents.size}`,
+			`Pipeline '${this.#def.name}' starting: mode=${this.#def.mode} iterations=${targetCount} waves=${this.#waves.length} agents=${this.#def.agents.size}` +
+				(this.#mux.isAvailable ? " (mux: active)" : " (mux: unavailable)"),
 		);
 
 		try {
 			for (let iteration = 0; iteration < targetCount; iteration++) {
 				if (signal?.aborted) {
 					await this.#stateTracker.updatePipeline({ status: "aborted" });
+					await this.#mux.cleanup();
 					return { status: "aborted", iterations: iteration, agentResults: allResults, errors };
 				}
 
@@ -151,6 +176,10 @@ export class PipelineController {
 					iteration,
 					wave: waveIdx,
 				});
+				// Set mux status to "Waiting" before wave starts
+				if (this.#mux.isAvailable) {
+					await this.#mux.setAgentStatus(agentName, "Waiting", `${agentName}: waiting`);
+				}
 			}
 			options.emitProgress(waveIdx);
 
@@ -173,6 +202,7 @@ export class PipelineController {
 							modelRegistry: options.modelRegistry,
 							settings: options.settings,
 							stateTracker: this.#stateTracker,
+							mux: this.#mux,
 						});
 						return { agentName, result };
 					} catch (err) {

@@ -153,6 +153,9 @@
       "bin": {
         "omp-swarm": "src/cli.ts",
       },
+      "dependencies": {
+        "@oh-my-pi/pi-natives": "workspace:*",
+      },
       "devDependencies": {
         "@types/bun": "^1.3.9",
       },
